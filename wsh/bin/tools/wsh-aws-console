@@ -44,7 +44,7 @@ def open_console(profile_name=None, echo_to_stdout=False):
         "https://console.aws.amazon.com/"
     )
     request_parameters += "&SigninToken=" + signin_token["SigninToken"]
-    request_parameters += "&Issuer=" + parse.quote_plus("https://wsh.fhioru.eu")
+    request_parameters += "&Issuer=" + parse.quote_plus("https://wsh.fab4c.eu")
     request_url = "https://signin.aws.amazon.com/federation" + request_parameters
 
     if echo_to_stdout:
