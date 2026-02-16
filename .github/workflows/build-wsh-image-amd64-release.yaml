@@ -35,7 +35,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/fhioru/wsh
+          images: ghcr.io/fab4c/wsh
           tags: |
             type=ref,event=branch
             type=ref,event=pr

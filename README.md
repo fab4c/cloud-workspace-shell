@@ -20,7 +20,7 @@ WSH can be used as;
 If you just want to try it out and have a look around it's as simple as running the Docker container.
 
 ```bash
-docker run -it --rm ghcr.io/fhioru/wsh:latest
+docker run -it --rm ghcr.io/fab4c/wsh:latest
 ```
 
 ### Add your own preferences, credentials and identity
@@ -57,7 +57,7 @@ docker run \
     -e "https_proxy=${https_proxy}" \
     -e "no_proxy=${no_proxy}" \
     -e "KRB5CCNAME=${KRB5CCNAME}" \
-    ghcr.io/fhioru/wsh:latest
+    ghcr.io/fab4c/wsh:latest
 ```
 
 ### Regular use
@@ -74,7 +74,7 @@ Create the `wsh` wrapper that defaults to using the latest image, ensuring that 
 PUID=$(id -u)
 PGID=$(id -g)
 
-_DEFAULT_IMAGE='ghcr.io/fhioru/wsh:latest'
+_DEFAULT_IMAGE='ghcr.io/fab4c/wsh:latest'
 WSH_INSTANCE_IMAGE="${1:-$_DEFAULT_IMAGE}"
 WSH_INSTANCE_TMP="$(mktemp -d)"
 
@@ -136,7 +136,7 @@ wsh
 If you want to run a specific version or tag, just pass it when starting WSH
 
 ```bash
-wsh ghcr.io/fhioru/wsh:v1.4.0
+wsh ghcr.io/fab4c/wsh:v1.4.0
 ```
 
 
@@ -201,7 +201,7 @@ amd64 and (soon) arm64 based environments as a containerized image.
 - Clone this repo
 
 ```
-git clone https://github.com/fhioru/cloud-workspace-shell.git
+git clone https://github.com/fab4c/cloud-workspace-shell.git
 cd cloud-workspace-shell
 ```
 

@@ -38,7 +38,7 @@ jobs:
           push: false
           context: .
           file: build/amd64/Dockerfile
-          tags: "ghcr.io/fhioru/wsh:${{github.sha}}"
+          tags: "ghcr.io/fab4c/wsh:${{github.sha}}"
         env:
           TENV_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

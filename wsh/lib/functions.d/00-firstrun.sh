@@ -7,8 +7,8 @@ function _firstrun {
     echo ""
     echo "WSH: Welcome!"
     echo ""
-    echo "  Documentation   : https://fhioru.github.io"
-    echo "  Found an issue? : https://github.com/fhioru/wsh/issues"
+    echo "  Documentation   : https://fab4c.github.io"
+    echo "  Found an issue? : https://github.com/fab4c/wsh/issues"
 
     mkdir -p ~/.wsh/config.d/
     touch ~/.wsh/config.d/.firstrun
