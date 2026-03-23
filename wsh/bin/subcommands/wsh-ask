@@ -9,7 +9,7 @@ new section. WSH Global Config uses INI file format and is loaded from ~/.wsh/co
 
   [openai]
   api_key = ab-cdhwgelkjlkjkj11134434454523344
-  model = gpt-3.5-turbo
+  model = gpt-5.2
 
 
 Usage:
@@ -145,7 +145,7 @@ def predict(options):
     _log.debug(f"Proceeding with context of {len(assistant_cache)} messages and payload: {question}")
 
     try:
-        completion = openai_client.chat.completions.create(model=os.getenv("OPENAI_MODEL", "gpt-3.5-turbo"),  # default: gpt-3.5-turbo - 10x cheaper than davinci, and better. $0.002 per 1k tokens
+        completion = openai_client.chat.completions.create(model=os.getenv("OPENAI_MODEL", "gpt-5.4-mini"),  
         messages=assistant_cache)
         # Just the reply:
         reply_content = completion.choices[0].message.content  # .replace('```python', '<pre>').replace('```', '</pre>')

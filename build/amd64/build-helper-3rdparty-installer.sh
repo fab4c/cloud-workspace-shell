@@ -43,19 +43,18 @@ function __util_download {
   local url="$1"
   local download_path="${2:-$STAGING_ROOT/install}"
   [ -d "${download_path}" ] || mkdir -p "${download_path}"
-  echo "Downloading to ${download_path}/$(basename "${url}")"
+  echo "Downloading ${url} to ${download_path}/$(basename "${url}")"
   curl -SsL "${url}" -o "${download_path}/$(basename "${url}")"
 }
 
 # Archive based downloads
-__util_download "https://github.com/aquasecurity/tfsec/releases/download/v${SW_VER_TFSEC}/tfsec_${SW_VER_TFSEC}_linux_${ARCH}.tar.gz"
+__util_download "https://github.com/aquasecurity/trivy/releases/download/v${SW_VER_TRIVY}/trivy_${SW_VER_TRIVY}_Linux-64bit.tar.gz"
 __util_download "https://github.com/boxboat/fixuid/releases/download/v${SW_VER_FIXUID}/fixuid-${SW_VER_FIXUID}-linux-${ARCH}.tar.gz"
 __util_download "https://github.com/charmbracelet/glow/releases/download/v${SW_VER_GLOW}/glow_Linux_${ARCH_FAMILY}.tar.gz"
 __util_download "https://github.com/dandavison/delta/releases/download/${SW_VER_DELTA}/delta-${SW_VER_DELTA}-${ARCH_FAMILY}-unknown-linux-gnu.tar.gz"
 __util_download "https://github.com/infracost/infracost/releases/download/${SW_VER_INFRACOST}/infracost-linux-${ARCH}.tar.gz"
 __util_download "https://github.com/junegunn/fzf/releases/download/v${SW_VER_FZF}/fzf-${SW_VER_FZF}-linux_${ARCH}.tar.gz"
 __util_download "https://github.com/starship/starship/releases/download/v${SW_VER_STARSHIP}/starship-${ARCH_FAMILY}-unknown-linux-gnu.tar.gz"
-__util_download "https://github.com/tenable/terrascan/releases/download/v${SW_VER_TERRASCAN}/terrascan_${SW_VER_TERRASCAN}_Linux_${ARCH_FAMILY}.tar.gz"
 __util_download "https://github.com/terraform-docs/terraform-docs/releases/download/v${SW_VER_TERRAFORMDOCS}/terraform-docs-v${SW_VER_TERRAFORMDOCS}-linux-${ARCH}.tar.gz"
 __util_download "https://github.com/terraform-linters/tflint/releases/download/v${SW_VER_TFLINT}/tflint_linux_${ARCH}.zip"
 __util_download "https://github.com/tofuutils/tenv/releases/download/v${SW_VER_TENV}/tenv_v${SW_VER_TENV}_linux_${ARCH_FAMILY}.tar.gz"
@@ -78,21 +77,25 @@ shopt -s nullglob
 
 # Extract installers
 for archive in "${STAGING_ROOT}"/installers/*.tar.gz; do
-  tar -xvf "$archive" -C "${STAGING_ROOT}/installers/"
+  echo "Processing archive (tar) ${archive}"
+  tar -xvf "${archive}" -C "${STAGING_ROOT}/installers/"
 done
 
 # Extract zip installers, handling case where no files match the pattern
 for archive in "${STAGING_ROOT}"/installers/*.zip; do
-  unzip -o "$archive" -d "${STAGING_ROOT}/installers/"
+  echo "Processing archive (zip) ${archive}"
+  unzip -o "${archive}" -d "${STAGING_ROOT}/installers/"
 done
 
 # Extract archives
 for archive in "${STAGING_ROOT}"/install/*.tar.gz; do
-  tar -xvf "$archive" -C "${STAGING_ROOT}/stage/"
+  echo "Processing archive (tar) ${archive}"
+  tar -xvf "${archive}" -C "${STAGING_ROOT}/stage/"
 done
 
 for archive in "${STAGING_ROOT}"/install/*.zip; do
-  unzip -o "$archive" -d "${STAGING_ROOT}/stage/"
+  echo "Processing archive (zip) ${archive}"
+  unzip -o "${archive}" -d "${STAGING_ROOT}/stage/"
 done
 
 shopt -u nullglob
