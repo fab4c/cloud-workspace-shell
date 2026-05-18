@@ -110,7 +110,7 @@ function _aws_list_sso_accounts {
 function _aws_select_sso_account {
 
     # Trigger an initial login to create the listing of accounts and available roles
-    aws-sso list AccountIdPad AccountAlias RoleName Arn Expires > /dev/null
+    aws-sso login > /dev/null
 
     local selected_aws_arn=$(aws-sso list --sort="AccountAlias" Id AccountAlias AccountIdPad RoleName Arn Expires | tail -n +5 |fzf --delimiter '|' --bind 'enter:become(echo {5})+accept')
 

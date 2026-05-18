@@ -1,6 +1,7 @@
 #cmd: ec2 describe-instances
 #tidy: wsh-arnchomp
 #sort: VpcId,AZ,SubnetId
+#discard: Architecture,ClientToken,EnaSupport,Hypervisor,RootDeviceName,RootDeviceType,VirtualizationType,UsageOperation,CurrentInstanceBootMode,BootMode,SourceDestCheck,UsageOperationUpdateTime,PrivateDnsName,PublicDnsName,StateTransitionReason,AmiLaunchIndex,Platform,Virt,SGs,Monitoring,Environment,LaunchTime,PlatformDetails,EbsOptimized
 
 .Reservations[] | .Instances[] |
 (

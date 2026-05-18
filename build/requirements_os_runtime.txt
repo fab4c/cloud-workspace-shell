@@ -24,7 +24,6 @@ locales
 nano
 openssh-client
 pcre2-utils
-pcregrep
 python3
 python3-distro
 python3-distro-info

@@ -63,6 +63,9 @@ apt-get update && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
+# Workarounds to handle changes between 24.04 -> 26.04
+ln -s /usr/bin/pcre2grep /usr/local/bin/pcregrep
+
 EOF
 
 WORKDIR /src
@@ -107,7 +110,7 @@ EOF
 ###############################################################################
 # Base Container - Vanilla Toolset
 ###############################################################################
-FROM ubuntu:24.04 AS base
+FROM ubuntu:26.04 AS base
 
 # Renew ARGS from the global context
 ARG GBL_ARCH
@@ -172,6 +175,8 @@ locale-gen "${GBL_LOCALE}"
 # our application and we intentionally want to modify the default system packages if needed by
 # an installed software artifact
 [ -e "/usr/lib/python3.12/EXTERNALLY-MANAGED" ] && rm -fv "/usr/lib/python3.12/EXTERNALLY-MANAGED"
+[ -e "/usr/lib/python3.13/EXTERNALLY-MANAGED" ] && rm -fv "/usr/lib/python3.13/EXTERNALLY-MANAGED"
+[ -e "/usr/lib/python3.14/EXTERNALLY-MANAGED" ] && rm -fv "/usr/lib/python3.14/EXTERNALLY-MANAGED"
 
 # Install our Python package manager
 wget -q https://github.com/astral-sh/uv/releases/latest/download/uv-${GBL_ARCH_FAMILY}-unknown-linux-gnu.tar.gz -O "${GBL_STAGING_ROOT}/uv-${GBL_ARCH_FAMILY}-unknown-linux-gnu.tar.gz" && \
@@ -220,19 +225,19 @@ ARG WSH_PYTHON_RUNTIME_DEPS="pyproject.toml"
 
 ARG SW_VER_FIXUID="0.6.0"
 ARG SW_VER_STARSHIP="1.24.2"
-ARG SW_VER_SSOTOOL="1.17.0"
+ARG SW_VER_SSOTOOL="2.2.2"
 ARG SW_VER_DELTA="0.18.0"
-ARG SW_VER_GLOW="1.5.1"
-ARG SW_VER_TENV="4.4.0"
+ARG SW_VER_GLOW="2.1.2"
+ARG SW_VER_TENV="4.12.2"
 ARG SW_VER_TERRAFORM="1.5.7"
 ARG SW_VER_OPENTOFU="1.11.0"
-ARG SW_VER_TFLINT="0.56.0"
+ARG SW_VER_TFLINT="0.62.1"
 ARG SW_VER_PACKER="1.9.5"
-ARG SW_VER_TERRAGRUNT="v0.99.4"
+ARG SW_VER_TERRAGRUNT="v1.0.4"
 ARG SW_VER_INFRACOST="v0.10.37"
 ARG SW_VER_DRIFTCTL="v0.40.0"
-ARG SW_VER_TERRAFORMDOCS="0.21.0"
-ARG SW_VER_TRIVY="0.69.3"
+ARG SW_VER_TERRAFORMDOCS="0.24.0"
+ARG SW_VER_TRIVY="0.70.0"
 ARG SW_VER_FZF="0.65.2"
 # curl -L -s https://dl.k8s.io/release/stable.txt
 ARG SW_VER_KUBECTL="v1.35.3"
@@ -446,7 +451,7 @@ mkdir -p \
   ${GBL_WSH_USER_HOME}/.kube
 
 # Link the JQ module library
-ln -s ${GBL_WSH_ROOT}/lib/jq ${GBL_WSH_USER_HOME}/.jq
+ln -s ${GBL_WSH_ROOT}/lib/jq/functions.jq ${GBL_WSH_USER_HOME}/.jq
 
 # Create a dummy AWS CLI config so that it doesnt have a brain fart when
 # run due to not setting its own sensible defaults
