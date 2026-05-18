@@ -63,6 +63,9 @@ apt-get update && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
+# Workarounds to handle changes between 24.04 -> 26.04
+ln -s /usr/bin/pcre2grep /usr/local/bin/pcregrep
+
 EOF
 
 WORKDIR /src
@@ -107,7 +110,7 @@ EOF
 ###############################################################################
 # Base Container - Vanilla Toolset
 ###############################################################################
-FROM ubuntu:24.04 AS base
+FROM ubuntu:26.04 AS base
 
 # Renew ARGS from the global context
 ARG GBL_ARCH
@@ -172,6 +175,8 @@ locale-gen "${GBL_LOCALE}"
 # our application and we intentionally want to modify the default system packages if needed by
 # an installed software artifact
 [ -e "/usr/lib/python3.12/EXTERNALLY-MANAGED" ] && rm -fv "/usr/lib/python3.12/EXTERNALLY-MANAGED"
+[ -e "/usr/lib/python3.13/EXTERNALLY-MANAGED" ] && rm -fv "/usr/lib/python3.13/EXTERNALLY-MANAGED"
+[ -e "/usr/lib/python3.14/EXTERNALLY-MANAGED" ] && rm -fv "/usr/lib/python3.14/EXTERNALLY-MANAGED"
 
 # Install our Python package manager
 wget -q https://github.com/astral-sh/uv/releases/latest/download/uv-${GBL_ARCH_FAMILY}-unknown-linux-gnu.tar.gz -O "${GBL_STAGING_ROOT}/uv-${GBL_ARCH_FAMILY}-unknown-linux-gnu.tar.gz" && \
