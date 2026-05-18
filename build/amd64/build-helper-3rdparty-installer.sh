@@ -50,7 +50,7 @@ function __util_download {
 # Archive based downloads
 __util_download "https://github.com/aquasecurity/trivy/releases/download/v${SW_VER_TRIVY}/trivy_${SW_VER_TRIVY}_Linux-64bit.tar.gz"
 __util_download "https://github.com/boxboat/fixuid/releases/download/v${SW_VER_FIXUID}/fixuid-${SW_VER_FIXUID}-linux-${ARCH}.tar.gz"
-__util_download "https://github.com/charmbracelet/glow/releases/download/v${SW_VER_GLOW}/glow_Linux_${ARCH_FAMILY}.tar.gz"
+__util_download "https://github.com/charmbracelet/glow/releases/download/v${SW_VER_GLOW}/glow_${SW_VER_GLOW}_Linux_${ARCH_FAMILY}.tar.gz"
 __util_download "https://github.com/dandavison/delta/releases/download/${SW_VER_DELTA}/delta-${SW_VER_DELTA}-${ARCH_FAMILY}-unknown-linux-gnu.tar.gz"
 __util_download "https://github.com/infracost/infracost/releases/download/${SW_VER_INFRACOST}/infracost-linux-${ARCH}.tar.gz"
 __util_download "https://github.com/junegunn/fzf/releases/download/v${SW_VER_FZF}/fzf-${SW_VER_FZF}-linux_${ARCH}.tar.gz"
