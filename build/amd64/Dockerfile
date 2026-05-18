@@ -446,7 +446,7 @@ mkdir -p \
   ${GBL_WSH_USER_HOME}/.kube
 
 # Link the JQ module library
-ln -s ${GBL_WSH_ROOT}/lib/jq ${GBL_WSH_USER_HOME}/.jq
+ln -s ${GBL_WSH_ROOT}/lib/jq/functions.jq ${GBL_WSH_USER_HOME}/.jq
 
 # Create a dummy AWS CLI config so that it doesnt have a brain fart when
 # run due to not setting its own sensible defaults
