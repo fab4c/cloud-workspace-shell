@@ -1,0 +1,28 @@
+#!/bin/bash
+# filepath: view_file_evolution.sh
+
+FILE=$1
+if [ -z "$FILE" ]; then
+    echo "Usage: $0 <filename>"
+    exit 1
+fi
+
+# Get all commits that touched this file, from oldest to newest
+COMMITS=$(git log --format="%H" --reverse -- "$FILE")
+
+# For each commit, show the git blame at that point
+for COMMIT in $COMMITS; do
+    COMMIT_DATE=$(git show -s --format="%cd" --date=short $COMMIT)
+    COMMIT_MSG=$(git show -s --format="%s" $COMMIT)
+    echo "=================================================================="
+    echo "Commit: $COMMIT"
+    echo "Date: $COMMIT_DATE"
+    echo "Message: $COMMIT_MSG"
+    echo "=================================================================="
+    
+    # Run git blame at this commit
+    git blame $COMMIT -- "$FILE"
+    echo ""
+    echo ""
+done
+
