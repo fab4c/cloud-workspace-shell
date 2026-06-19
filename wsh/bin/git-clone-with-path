@@ -1,0 +1,24 @@
+#!/bin/bash
+# Attempts to clone the given Git repo to a corresponding relative path directory
+function _git_clone_with_path() {
+    # Check if the argument is provided
+    if [ $# -ne 1 ]; then
+        echo "Usage: git-clone-with-path <url>"
+        return 1
+    fi
+
+    local full_url="$1"
+
+    # Use parameter expansion to remove the scheme and host
+    local relative_path="${full_url#*://*}"  # Remove scheme (http:// or https://)
+    relative_path="${relative_path#*/}"      # Remove the host part
+    local relative_dir="$(dirname "${relative_path}")"
+
+    # Create the directory structure for the web_path
+    mkdir -p "${relative_dir}"
+
+    # Perform git clone
+    cd "${relative_dir}" && git clone "${full_url}"
+}
+
+_git_clone_with_path "${@}"
