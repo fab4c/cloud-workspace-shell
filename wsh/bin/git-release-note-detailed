@@ -1,0 +1,29 @@
+#!/bin/bash
+# Generate a CHANGELOG from the git history in MarkDown compatible format
+
+echo "# CHANGELOG
+
+The change-log below has been generated using the Git history in the repo. It
+can be updated by running 'git changelog > CHANGELOG.md' from the repo root"
+
+git for-each-ref --sort='*authordate' --format='%(tag)' refs/tags |tac |grep -v '^$' | while read TAG
+do
+    echo
+    if [ $NEXT ];then
+        echo "## $NEXT Summary"
+    else
+        echo "## Current"
+    fi
+    GIT_PAGER=cat git log --no-merges --format=" * %s" $TAG..$NEXT
+    echo
+    echo "### File Changes"
+    GIT_PAGER=cat git whatchanged --pretty=format:' * %h - %<(15,trunc)%an% %cd - %s%n' $TAG..$NEXT | sed -e "s/^\:/\t\t\:/g"
+    NEXT=$TAG
+done
+FIRST=$(git tag -l | head -1)
+echo
+echo "## $FIRST Summary"
+GIT_PAGER=cat git log --no-merges --format=" * %s" $FIRST
+echo
+echo "### File Changes"
+GIT_PAGER=cat git whatchanged --pretty=format:' * %h - %<(15,trunc)%an% %cd - %s%n' $FIRST | sed -e "s/^\:/\t\t\:/g"
