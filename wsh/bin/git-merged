@@ -1,0 +1,417 @@
+#!/usr/bin/env python3
+"""
+See if branches have been merged into an integration branch
+
+Requirements:
+    For colorized output, install the colorama and tabulate packages:
+    pip install colorama tabulate
+
+Example:
+    > git-merged -a
+    +----------------------------+------------+
+    | Branch                     | Status     |
+    +----------------------------+------------+
+    | origin/master              | merged     |
+    | origin/mysqlulz            | NOT merged |
+    | emrepoe                    | merged     |
+    | master                     | merged     |
+    | mysqlulz                   | NOT merged |
+    +----------------------------+------------+
+"""
+
+import subprocess
+import argparse
+import sys
+import re
+
+
+def merged(symbolic, branch):
+    """
+    Given a symbolic reference and a branch, returns whether the symbolic
+    reference has been merged into that branch
+    """
+    try:
+        sha1 = subprocess.check_output(
+            ['git', 'log', '-1', '--pretty=format:%h', symbolic],
+            stderr=subprocess.DEVNULL,
+            text=True
+        ).strip()
+
+        contains = subprocess.check_output(
+            ['git', 'branch', '--contains', sha1],
+            stderr=subprocess.DEVNULL,
+            text=True
+        )
+
+        # Check if branch appears in the output
+        pattern = r'\s' + re.escape(branch) + r'\s*$'
+        return bool(re.search(pattern, contains, re.MULTILINE))
+    except subprocess.CalledProcessError:
+        return False
+
+
+def remote_branches():
+    """Get list of remote branches"""
+    try:
+        output = subprocess.check_output(
+            ['git', 'branch', '-r'],
+            stderr=subprocess.DEVNULL,
+            text=True
+        )
+        branches = []
+        for line in output.split('\n'):
+            line = line.strip()
+            if line and not line.endswith('/HEAD'):
+                # Extract the first token
+                branch = line.split()[0] if line.split() else None
+                # Skip GitHub PR refs (origin/pull/N/head, origin/pull/N/merge)
+                if branch and '/pull/' not in branch:
+                    branches.append(branch)
+        return branches
+    except subprocess.CalledProcessError:
+        return []
+
+
+def local_branches():
+    """Get list of local branches"""
+    try:
+        output = subprocess.check_output(
+            ['git', 'branch'],
+            stderr=subprocess.DEVNULL,
+            text=True
+        )
+        branches = []
+        for line in output.split('\n'):
+            # Remove the * marker and strip whitespace
+            line = line.replace('*', '').strip()
+            if line:
+                branches.append(line)
+        return branches
+    except subprocess.CalledProcessError:
+        return []
+
+
+def current_branch():
+    """Get the current branch"""
+    try:
+        output = subprocess.check_output(
+            ['git', 'branch'],
+            stderr=subprocess.DEVNULL,
+            text=True
+        )
+        for line in output.split('\n'):
+            if '*' in line:
+                branch = line.replace('*', '').strip()
+                return branch
+        return 'master'
+    except subprocess.CalledProcessError:
+        return 'master'
+
+
+def pretty_table(table, integration_branch):
+    """
+    Generate a lovely colorized table with happiness and joy.
+
+    Args:
+        table: List of tuples (branch, status)
+        integration_branch: The name of the branch that contains (or doesn't) the checked branches
+
+    Returns:
+        String representation of the table
+    """
+    try:
+        from colorama import Fore, Style, init
+        from tabulate import tabulate
+
+        init(autoreset=True)
+
+        colorized_table = []
+        for branch, status in table:
+            if status == 'merged':
+                color = Fore.GREEN
+                msg = f'{color}merged{Style.RESET_ALL}'
+                colored_branch = f'{color}{branch}{Style.RESET_ALL}'
+            else:
+                color = Fore.RED
+                msg = f'{color}NOT merged{Style.RESET_ALL}'
+                colored_branch = f'{color}{branch}{Style.RESET_ALL}'
+
+            colorized_table.append([colored_branch, msg])
+
+        headers = ['Branch', f'Status (against {integration_branch})']
+        return tabulate(colorized_table, headers=headers, tablefmt='pipe')
+    except ImportError as e:
+        raise e
+
+
+def plain_table(table, integration_branch):
+    """
+    Generate a plain table with whitespace padding
+
+    Args:
+        table: List of tuples (branch, status)
+        integration_branch: The name of the branch that contains (or doesn't) the checked branches
+
+    Returns:
+        String representation of the table
+    """
+    if not table:
+        return "No branches to check"
+
+    # Calculate the max branch name length
+    max_branch_len = max(len(branch) for branch, _ in table)
+    left_spaces = max_branch_len + 1
+
+    # Build the table
+    rows = []
+    for branch, status in table:
+        msg = 'merged' if status == 'merged' else 'NOT merged'
+        padding = left_spaces - len(branch)
+        rows.append(f"{branch}{' ' * padding}{msg}")
+
+    header = f"Branch{' ' * (left_spaces - 6)}Status (against {integration_branch})"
+    result = f"{header}\n\n" + '\n'.join(rows)
+    return result
+
+
+def print_table(table, integration_branch, color_enabled):
+    """
+    Try to generate a colorized table, and fall back to a plain table.
+
+    Args:
+        table: List of tuples (branch, status)
+        integration_branch: The name of the branch that contains (or doesn't) the checked branches
+        color_enabled: Whether to enable color (True/False/None for auto)
+
+    Returns:
+        String representation of the table
+    """
+    if color_enabled is None:
+        # Auto mode - try pretty, fall back to plain
+        try:
+            return pretty_table(table, integration_branch)
+        except ImportError:
+            return plain_table(table, integration_branch)
+    elif color_enabled:
+        # Color explicitly enabled
+        try:
+            return pretty_table(table, integration_branch)
+        except ImportError as e:
+            print(f"Missing one of the prerequisite packages ['colorama', 'tabulate'], {e}",
+                  file=sys.stderr)
+            return plain_table(table, integration_branch)
+    else:
+        # Color explicitly disabled
+        return plain_table(table, integration_branch)
+
+
+def delete_branch(branch):
+    """
+    Delete a local branch
+
+    Args:
+        branch: Name of the branch to delete
+
+    Returns:
+        True if successful, False otherwise
+    """
+    try:
+        subprocess.check_output(
+            ['git', 'branch', '-d', branch],
+            stderr=subprocess.STDOUT,
+            text=True
+        )
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to delete branch '{branch}': {e.output.strip()}", file=sys.stderr)
+        return False
+
+
+def parse_args(args):
+    """Parse command-line arguments"""
+    parser = argparse.ArgumentParser(
+        description='Check if branches have been merged into an integration branch',
+        prog='git-merged'
+    )
+
+    parser.add_argument(
+        '--branch',
+        dest='integration_branch',
+        metavar='BRANCH',
+        help='The branch to check for merges'
+    )
+
+    parser.add_argument(
+        '-r', '--remote',
+        action='store_true',
+        help='Check all remote branches'
+    )
+
+    parser.add_argument(
+        '-l', '--local',
+        action='store_true',
+        help='Check all local branches'
+    )
+
+    parser.add_argument(
+        '-a', '--all',
+        action='store_true',
+        help='Check every branch ever'
+    )
+
+    parser.add_argument(
+        '-D', '--delete',
+        action='store_true',
+        help='Delete merged local branches (excluding current branch and those specified with -x). Use with -y to confirm.'
+    )
+
+    parser.add_argument(
+        '-y', '--yes',
+        action='store_true',
+        help='Confirm deletion when used with -D (without this, -D will only show what would be deleted)'
+    )
+
+    parser.add_argument(
+        '-x', '--exclude',
+        action='append',
+        dest='exclude_branches',
+        metavar='BRANCH',
+        default=[],
+        help='Exclude branch from deletion (can be specified multiple times)'
+    )
+
+    parser.add_argument(
+        '-c', '--color',
+        dest='color',
+        nargs='?',
+        const=True,
+        default=None,
+        metavar='WHEN',
+        help='Enable color (enabled by default, use --no-color to disable)'
+    )
+
+    parser.add_argument(
+        '--no-color',
+        dest='color',
+        action='store_false',
+        help='Disable color output'
+    )
+
+    parser.add_argument(
+        '-v', '--version',
+        action='version',
+        version='git-merged 1.0.0'
+    )
+
+    parser.add_argument(
+        'branches',
+        nargs='*',
+        help='Specific branches to check'
+    )
+
+    options = parser.parse_args(args)
+
+    # Process the parsed options
+    result = {
+        'integration_branch': options.integration_branch or current_branch(),
+        'check_branches': [],
+        'color': options.color,
+        'delete': options.delete,
+        'yes': options.yes,
+        'exclude_branches': options.exclude_branches
+    }
+
+    if options.branches:
+        # If specific branches are given, those take precedence
+        result['check_branches'].extend(options.branches)
+    elif not (options.remote or options.local or options.all):
+        # No specific branches or flags - focus on local branches.
+        # Use -r/-a to include remote-tracking refs.
+        result['check_branches'].extend(local_branches())
+    else:
+        # Add based on flags
+        if options.all or options.remote:
+            result['check_branches'].extend(remote_branches())
+        if options.all or options.local:
+            result['check_branches'].extend(local_branches())
+
+    return result
+
+
+def main():
+    """Main entry point"""
+    try:
+        opts = parse_args(sys.argv[1:])
+
+        # Generate a list of (branch, status) tuples
+        rows = []
+        for branch in opts['check_branches']:
+            if merged(branch, opts['integration_branch']):
+                rows.append((branch, 'merged'))
+            else:
+                rows.append((branch, 'unmerged'))
+
+        # Print the table
+        tbl = print_table(rows, opts['integration_branch'], opts['color'])
+        print(tbl)
+
+        # Delete merged local branches if requested
+        if opts['delete']:
+            current = current_branch()
+            exclude_set = set(opts['exclude_branches'])
+            exclude_set.add(current)  # Always exclude current branch
+
+            # Get merged local branches only
+            merged_local = []
+            for branch, status in rows:
+                # Only consider local branches (not remote ones)
+                if status == 'merged' and not branch.startswith('origin/'):
+                    merged_local.append(branch)
+
+            if not merged_local:
+                print("\nNo merged local branches to delete.")
+            else:
+                # Filter out excluded branches
+                to_delete = [b for b in merged_local if b not in exclude_set]
+                skipped = [b for b in merged_local if b in exclude_set]
+
+                if not opts['yes']:
+                    # Dry-run mode
+                    print(f"\n[DRY RUN] Would delete the following merged local branches:")
+                    print(f"(Excluding: {', '.join(sorted(exclude_set))})\n")
+
+                    if to_delete:
+                        for branch in to_delete:
+                            print(f"  Would delete: {branch}")
+
+                    if skipped:
+                        for branch in skipped:
+                            print(f"  Would skip: {branch} (excluded)")
+
+                    print(f"\nSummary: {len(to_delete)} would be deleted, {len(skipped)} would be skipped")
+                    print("\nTo actually delete these branches, run with -D -y")
+                else:
+                    # Actually delete
+                    print(f"\nDeleting merged local branches (excluding {', '.join(sorted(exclude_set))})...")
+                    deleted = []
+
+                    for branch in to_delete:
+                        if delete_branch(branch):
+                            deleted.append(branch)
+                            print(f"  Deleted: {branch}")
+
+                    if skipped:
+                        for branch in skipped:
+                            print(f"  Skipped: {branch} (excluded)")
+
+                    print(f"\nSummary: {len(deleted)} deleted, {len(skipped)} skipped")
+
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()
