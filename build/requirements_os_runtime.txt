@@ -7,6 +7,7 @@ bsdextrautils
 ca-certificates
 coreutils
 curl
+dnsutils
 file
 fonts-freefont-ttf
 git

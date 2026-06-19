@@ -1,0 +1,3 @@
+#/usr/bin/env bash
+
+dig txt o-o.myaddr.l.google.com @8.8.8.8 +short
