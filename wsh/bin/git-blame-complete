@@ -24,7 +24,28 @@ CONST_SYSTEM_TYPE=$(uname -m)
 CONST_SCRIPT_NAME=${0##*/}
 CONST_SCRIPT_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# reduces ARNs to only their 'resource' token to avoid display ridiculous
-# amounts of tripe in the output of WSH 'list' sub-command
+FILE=$1
+if [ -z "$FILE" ]; then
+    echo "Usage: $0 <filename>"
+    exit 1
+fi
 
-sed -E -e "s/arn:(.*):(.*):(.*):(.*):(.*)/\5/g"
+# Get all commits that touched this file, from oldest to newest
+COMMITS=$(git log --format="%H" --reverse -- "$FILE")
+
+# For each commit, show the git blame at that point
+for COMMIT in $COMMITS; do
+    COMMIT_DATE=$(git show -s --format="%cd" --date=short $COMMIT)
+    COMMIT_MSG=$(git show -s --format="%s" $COMMIT)
+    echo "=================================================================="
+    echo "Commit: $COMMIT"
+    echo "Date: $COMMIT_DATE"
+    echo "Message: $COMMIT_MSG"
+    echo "=================================================================="
+    
+    # Run git blame at this commit
+    git blame $COMMIT -- "$FILE"
+    echo ""
+    echo ""
+done
+

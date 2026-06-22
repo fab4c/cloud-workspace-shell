@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+
+##############################################################################
+# Shell Behaviour
+##############################################################################
+
+# Check for unbound variables being used
+# set -o nounset
+
+# Exit is a bad command is attempted. If you're going to handle errors then
+# leave this disabled
+# set -o errexit
+
+# Exit if any of the commands in a pipeline exit with a non-zero exit code
+# set -o pipefail
+
+##############################################################################
+# Variables
+##############################################################################
+
+CONST_COMMAND_LINE="$@"
+CONST_OS_VERSION=$(uname -r)
+CONST_SYSTEM_TYPE=$(uname -m)
+CONST_SCRIPT_NAME=${0##*/}
+CONST_SCRIPT_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+FILE=$1
+if [ -z "$FILE" ]; then
+    echo "Usage: $0 <filename>"
+    exit 1
+fi
+
+# Get all commits that touched this file, from oldest to newest
+COMMITS=$(git log --format="%H" --reverse -- "$FILE")
+
+PREV_COMMIT=""
+for COMMIT in $COMMITS; do
+    COMMIT_DATE=$(git show -s --format="%cd" --date=short $COMMIT)
+    COMMIT_MSG=$(git show -s --format="%s" $COMMIT)
+    AUTHOR=$(git show -s --format="%an" $COMMIT)
+    
+    echo "=================================================================="
+    echo "Commit: $COMMIT"
+    echo "Author: $AUTHOR"
+    echo "Date: $COMMIT_DATE"
+    echo "Message: $COMMIT_MSG"
+    echo "=================================================================="
+    
+    if [ -z "$PREV_COMMIT" ]; then
+        # First commit with this file
+        echo "Initial version of the file:"
+        git show $COMMIT:"$FILE" 2>/dev/null || echo "File not available in this commit"
+    else
+        # Show what changed between previous commit and this one
+        echo "Changes made in this commit:"
+        git diff $PREV_COMMIT..$COMMIT -- "$FILE"
+    fi
+    
+    PREV_COMMIT=$COMMIT
+    echo ""
+    echo ""
+done
+

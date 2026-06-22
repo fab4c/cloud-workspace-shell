@@ -18,6 +18,12 @@
 # Variables
 ##############################################################################
 
+CONST_COMMAND_LINE="$@"
+CONST_OS_VERSION=$(uname -r)
+CONST_SYSTEM_TYPE=$(uname -m)
+CONST_SCRIPT_NAME=${0##*/}
+CONST_SCRIPT_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 _BUFFER="$(mktemp).buf"
 
 ##############################################################################

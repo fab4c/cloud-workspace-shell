@@ -29,6 +29,10 @@ jobs:
           username: ${{github.actor}}
           password: ${{secrets.GITHUB_TOKEN}}
 
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -37,6 +41,9 @@ jobs:
           push: true
           context: .
           file: build/amd64/Dockerfile
-          tags: "ghcr.io/fab4c/wsh:${{github.sha}},ghcr.io/fab4c/wsh:next"
+          tags: |
+            ghcr.io/fab4c/wsh:${{ github.sha }}
+            ghcr.io/fab4c/wsh:next
+            ghcr.io/fab4c/wsh:${{ steps.date.outputs.date }}
         env:
           TENV_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

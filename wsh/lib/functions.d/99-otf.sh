@@ -54,7 +54,7 @@ function _otf_export {
 # Check our code for syntax/lint issues
 function _otf_check_syntax {
     _screen_info "Checking syntax with tflint"
-    tflint --config "${HOME}/etc/tflint.hcl"
+    tflint --config "${WSH_ROOT}/etc/tflint.hcl"
     [ $? -eq 0 ] ||  { echo -e "\033[31mResolve syntax errors first\033[0m"; return 1; }
 }
 

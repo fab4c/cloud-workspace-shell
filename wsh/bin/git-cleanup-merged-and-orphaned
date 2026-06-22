@@ -24,7 +24,16 @@ CONST_SYSTEM_TYPE=$(uname -m)
 CONST_SCRIPT_NAME=${0##*/}
 CONST_SCRIPT_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# reduces ARNs to only their 'resource' token to avoid display ridiculous
-# amounts of tripe in the output of WSH 'list' sub-command
+DETECTED_MAIN_BRANCH="$(git remote show origin | grep -oP 'HEAD branch:(.*)' | sed -e 's/HEAD branch: //g')"
+COUNT=0
 
-sed -E -e "s/arn:(.*):(.*):(.*):(.*):(.*)/\5/g"
+echo "INFO: Detected main branch: ${DETECTED_MAIN_BRANCH}"
+
+git branch --merged "${DETECTED_MAIN_BRANCH}" | grep -vE "^\*|${DETECTED_MAIN_BRANCH}" | while read branch; do
+  if git branch -vv | grep -q "^  $branch .*: gone]"; then
+    echo git branch -d "$branch"
+    ((COUNT++))
+  fi
+done
+
+echo "INFO: ${COUNT} branches are already merged and can be deleted locally"

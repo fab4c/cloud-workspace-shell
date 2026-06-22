@@ -24,7 +24,4 @@ CONST_SYSTEM_TYPE=$(uname -m)
 CONST_SCRIPT_NAME=${0##*/}
 CONST_SCRIPT_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# reduces ARNs to only their 'resource' token to avoid display ridiculous
-# amounts of tripe in the output of WSH 'list' sub-command
-
-sed -E -e "s/arn:(.*):(.*):(.*):(.*):(.*)/\5/g"
+dig txt o-o.myaddr.l.google.com @8.8.8.8 +short
